@@ -50,7 +50,7 @@ class ScannerProvider extends ChangeNotifier {
         url,
         headers: {
           'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true', // Por si acaso con ngrok
+          // Por si acaso con ngrok
         },
       );
 
