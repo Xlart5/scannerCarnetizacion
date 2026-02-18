@@ -134,6 +134,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 // ==========================================
 // PANTALLA DE RESULTADOS (Verde o Rojo)
 // ==========================================
+// ==========================================
+// PANTALLA DE RESULTADOS (Tu Diseño Original)
+// ==========================================
 class ResultScreen extends StatelessWidget {
   final VoidCallback onScanAgain;
 
@@ -145,144 +148,276 @@ class ResultScreen extends StatelessWidget {
     final state = provider.state;
     final persona = provider.personaEncontrada;
 
-    Color bgColor;
-    IconData mainIcon;
-    String title;
-    String message;
+    // Variables de diseño por defecto
+    Color bgColor = const Color(0xFFFFD54F); // Amarillo de tu diseño
+    IconData mainIcon = Icons.verified_user;
+    String title = "ACCESO\nPERMITIDO";
 
-    switch (state) {
-      case ScannerState.loading:
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-
-      case ScannerState.success:
-        bgColor = Colors.green.shade600;
-        mainIcon = Icons.check_circle_outline;
-        title = "ACCESO PERMITIDO";
-        message =
-            "La persona está autorizada para ingresar al área de cómputo.";
-        break;
-
-      case ScannerState.denied:
-        bgColor = Colors.red.shade700;
-        mainIcon = Icons.cancel_outlined;
-        title = "ACCESO DENEGADO";
-        message = "Esta persona NO tiene permisos de acceso a cómputo.";
-        break;
-
-      case ScannerState.notFound:
-        bgColor = Colors.orange.shade800;
-        mainIcon = Icons.person_off_outlined;
-        title = "NO ENCONTRADO";
-        message =
-            "El carnet de identidad del QR no existe en la base de datos.";
-        break;
-
-      case ScannerState.error:
-      default:
-        bgColor = Colors.grey.shade800;
-        mainIcon = Icons.error_outline;
-        title = "ERROR DE LECTURA";
-        message = provider.errorMessage;
-        break;
+    // Cambiamos colores según el estado
+    if (state == ScannerState.loading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF1E293B),
+        body: Center(child: CircularProgressIndicator(color: Colors.amber)),
+      );
+    } else if (state == ScannerState.denied) {
+      bgColor = Colors.redAccent;
+      mainIcon = Icons.cancel;
+      title = "ACCESO\nDENEGADO";
+    } else if (state == ScannerState.notFound) {
+      bgColor = Colors.orangeAccent;
+      mainIcon = Icons.person_off;
+      title = "QR NO\nENCONTRADO";
+    } else if (state == ScannerState.error) {
+      bgColor = Colors.grey.shade800;
+      mainIcon = Icons.error;
+      title = "ERROR DE\nLECTURA";
     }
 
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(30.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(mainIcon, size: 100, color: Colors.white),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            // Badge "SESIÓN ACTIVA"
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E293B), // Azul oscuro
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.circle, color: Colors.greenAccent, size: 10),
+                  SizedBox(width: 8),
+                  Text(
+                    "SESIÓN ACTIVA",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Icono del Escudo
+            Icon(mainIcon, size: 90, color: const Color(0xFF1E293B)),
+            const SizedBox(height: 10),
+
+            // Título
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1E293B),
+                height: 1.1,
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Tarjeta Blanca Inferior
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(30),
+                decoration: const BoxDecoration(
                   color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 15),
-              Text(
-                message,
-                style: const TextStyle(fontSize: 16, color: Colors.white70),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-
-              // Si hay datos de persona, los mostramos en una tarjeta
-              if (persona != null)
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildInfoRow(
-                        Icons.person,
-                        "${persona['nombre']} ${persona['apellidoPaterno']}",
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        Icons.badge,
-                        "C.I.: ${persona['carnetIdentidad']}",
-                      ),
-                      const Divider(),
-                      _buildInfoRow(
-                        Icons.work,
-                        persona['cargo'] ?? 'Sin cargo',
-                      ),
-                    ],
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(40),
+                    topRight: Radius.circular(40),
                   ),
                 ),
+                child: persona != null
+                    ? _buildPersonaInfo(persona)
+                    : _buildErrorMessage(provider.errorMessage),
+              ),
+            ),
 
-              const Spacer(),
-              SizedBox(
+            // Botón de Escanear de Nuevo (Pegado abajo en la zona blanca)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: bgColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    backgroundColor: const Color(0xFF1E293B),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
                   onPressed: onScanAgain,
                   icon: const Icon(Icons.qr_code_scanner),
                   label: const Text(
-                    "ESCANEAR OTRA VEZ",
+                    "ESCANEAR OTRO QR",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
+  // --- WIDGET: DATOS DE LA PERSONA ---
+  Widget _buildPersonaInfo(Map<String, dynamic> persona) {
+    // 1. Armar nombre completo
+    final nombreCompleto =
+        "${persona['nombre']} ${persona['apellidoPaterno']} ${persona['apellidoMaterno'] ?? ''}"
+            .trim();
+
+    // 2. Extraer ID de la foto para armar la URL de Ngrok
+    final int? imagenId = persona['imagenId'];
+    final String photoUrl = imagenId != null
+        ? 'https://270d-2800-cd0-7b1c-e300-907e-f5b9-2fee-2f6e.ngrok-free.app/api/imagenes/$imagenId/descargar'
+        : 'https://ui-avatars.com/api/?name=${persona['nombre']}+${persona['apellidoPaterno']}&background=random';
+
+    // 3. Obtener hora actual en formato HH:MM
+    final horaIngreso =
+        "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}";
+
+    return Column(
+      children: [
+        // Foto circular con borde amarillo
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.amber, width: 4),
           ),
-        ],
+          child: CircleAvatar(
+            radius: 60,
+            backgroundImage: NetworkImage(photoUrl),
+            backgroundColor: Colors.grey.shade200,
+          ),
+        ),
+        const SizedBox(height: 25),
+
+        // Nombre
+        const Text(
+          "NOMBRE COMPLETO",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          nombreCompleto,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Carnet
+        const Text(
+          "CARNET DE IDENTIDAD",
+          style: TextStyle(
+            color: Colors.grey,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          "${persona['carnetIdentidad']}",
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20),
+          child: Divider(),
+        ),
+
+        // Fila Inferior (Hora y Departamento)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Column(
+              children: [
+                const Text(
+                  "HORA LECTURA",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  horaIngreso,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              children: [
+                const Text(
+                  "DEPARTAMENTO",
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    "${persona['unidad'] ?? 'Sin unidad'}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorMessage(String error) {
+    return Center(
+      child: Text(
+        error.isNotEmpty ? error : "No se pudo procesar la solicitud.",
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.grey, fontSize: 16),
       ),
     );
   }

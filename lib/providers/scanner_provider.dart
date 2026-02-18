@@ -25,60 +25,42 @@ class ScannerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // LA FUNCIÓN PRINCIPAL: Procesa el QR
+  // LA FUNCIÓN PRINCIPAL: Procesa el QR directo con tu nuevo endpoint
   Future<void> validarQrCode(String rawQrData) async {
     _state = ScannerState.loading;
     notifyListeners();
 
     try {
-      // 1. Parsear el String del QR
-      // Ejemplo: "QR-8855837-20260218-493E6D02"
-      final parts = rawQrData.split('-');
-      if (parts.length < 2) {
-        _setError("Formato de QR no válido");
-        return;
-      }
-      final ciBuscado = parts[1]; // Obtenemos "8855837"
+      print("Consultando acceso para el QR: $rawQrData");
 
-      print("Buscando C.I.: $ciBuscado...");
+      // Llamamos directo a tu nuevo endpoint
+      final url = Uri.parse(
+        '$_baseUrl/api/personal/detalles/qrComputo/$rawQrData',
+      );
 
-      // 2. Llamar a la API (Usamos el endpoint de detalles que devuelve toda la lista)
-      // ⚠️ NOTA: Lo ideal sería tener un endpoint en el backend tipo: /api/personal/buscar/{ci}
-      // Pero usaremos el que tenemos disponible ahora.
-      final url = Uri.parse('$_baseUrl/api/personal/detalles');
       final response = await http.get(
         url,
         headers: {
-          'Accept': 'application/json',
-          // Por si acaso con ngrok
+          // Vital para Ngrok
         },
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> todaLaLista = json.decode(
-          utf8.decode(response.bodyBytes),
-        );
+        // Obtenemos los datos de la persona escaneada
+        final persona = json.decode(utf8.decode(response.bodyBytes));
+        _personaEncontrada = persona;
 
-        // 3. Buscar a la persona específica en la lista por su C.I.
-        try {
-          final persona = todaLaLista.firstWhere(
-            (p) => p['carnetIdentidad'].toString() == ciBuscado,
-          );
+        // Leemos el booleano que manda el backend
+        final bool tieneAcceso = persona['accesoComputo'] == true;
 
-          _personaEncontrada = persona;
-
-          // 4. Verificar el acceso a cómputo
-          final bool tieneAcceso = persona['accesoComputo'] == true;
-
-          if (tieneAcceso) {
-            _state = ScannerState.success; // ¡Acceso Permitido!
-          } else {
-            _state = ScannerState.denied; // Acceso Denegado
-          }
-        } catch (e) {
-          // Si no encuentra el C.I. en la lista
-          _state = ScannerState.notFound;
+        if (tieneAcceso) {
+          _state = ScannerState.success; // Pantalla Verde/Amarilla (Éxito)
+        } else {
+          _state = ScannerState.denied; // Pantalla Roja (Denegado)
         }
+      } else if (response.statusCode == 404 || response.statusCode == 204) {
+        // Si el backend responde que no existe ese QR
+        _state = ScannerState.notFound;
       } else {
         _setError("Error del servidor: ${response.statusCode}");
       }
