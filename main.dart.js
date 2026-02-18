@@ -56574,7 +56574,7 @@ A.xy("Buscando C.I.: "+A.m(k)+"...")
 j=A.il("https://c5dc-192-223-121-131.ngrok-free.app/api/personal/detalles")
 d=t.N
 s=7
-return A.E(A.aq_(j,A.az(["Accept","application/json","ngrok-skip-browser-warning","true"],d,d)),$async$r1)
+return A.E(A.aq_(j,A.az(["Accept","application/json"],d,d)),$async$r1)
 case 7:i=a2
 if(i.b===200){h=B.ca.dH(B.L.dH(i.w))
 try{g=J.agD(h,new A.Wb(k))
