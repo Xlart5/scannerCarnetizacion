@@ -137,6 +137,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 // ==========================================
 // PANTALLA DE RESULTADOS (Tu Diseño Original)
 // ==========================================
+// ==========================================
+// PANTALLA DE RESULTADOS (Responsiva y Dinámica)
+// ==========================================
 class ResultScreen extends StatelessWidget {
   final VoidCallback onScanAgain;
 
@@ -148,8 +151,11 @@ class ResultScreen extends StatelessWidget {
     final state = provider.state;
     final persona = provider.personaEncontrada;
 
+    // Obtenemos el tamaño exacto de la pantalla del celular
+    final size = MediaQuery.of(context).size;
+
     // Variables de diseño por defecto
-    Color bgColor = const Color(0xFFFFD54F); // Amarillo de tu diseño
+    Color bgColor = const Color(0xFFFFD54F); // Amarillo
     IconData mainIcon = Icons.verified_user;
     String title = "ACCESO\nPERMITIDO";
 
@@ -178,12 +184,12 @@ class ResultScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 20),
+            SizedBox(height: size.height * 0.02), // 2% de la pantalla
             // Badge "SESIÓN ACTIVA"
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B), // Azul oscuro
+                color: const Color(0xFF1E293B),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Row(
@@ -202,30 +208,42 @@ class ResultScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: size.height * 0.03),
 
-            // Icono del Escudo
-            Icon(mainIcon, size: 90, color: const Color(0xFF1E293B)),
-            const SizedBox(height: 10),
+            // Icono Dinámico (Se adapta al alto de la pantalla)
+            Icon(
+              mainIcon,
+              size: size.height * 0.1,
+              color: const Color(0xFF1E293B),
+            ),
+            SizedBox(height: size.height * 0.01),
 
-            // Título
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1E293B),
-                height: 1.1,
+            // Título Dinámico (Se encoge si no entra)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1E293B),
+                    height: 1.1,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: size.height * 0.03),
 
-            // Tarjeta Blanca Inferior
+            // Tarjeta Blanca Inferior (¡AHORA ES SCROLLABLE!)
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(30),
+                padding: EdgeInsets.all(
+                  size.width * 0.07,
+                ), // Padding relativo al ancho
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -233,13 +251,16 @@ class ResultScreen extends StatelessWidget {
                     topRight: Radius.circular(40),
                   ),
                 ),
+                // Aquí metemos el SingleChildScrollView para evitar recortes
                 child: persona != null
-                    ? _buildPersonaInfo(persona)
+                    ? SingleChildScrollView(
+                        child: _buildPersonaInfo(persona, size),
+                      )
                     : _buildErrorMessage(provider.errorMessage),
               ),
             ),
 
-            // Botón de Escanear de Nuevo (Pegado abajo en la zona blanca)
+            // Botón de Escanear de Nuevo
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(20),
@@ -269,26 +290,27 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET: DATOS DE LA PERSONA ---
-  Widget _buildPersonaInfo(Map<String, dynamic> persona) {
+  // --- WIDGET: DATOS DE LA PERSONA (RESPONSIVO) ---
+  Widget _buildPersonaInfo(Map<String, dynamic> persona, Size size) {
     // 1. Armar nombre completo
     final nombreCompleto =
         "${persona['nombre']} ${persona['apellidoPaterno']} ${persona['apellidoMaterno'] ?? ''}"
             .trim();
 
-    // 2. Extraer ID de la foto para armar la URL de Ngrok
-    final int? imagenId = persona['imagenId'];
-    final String photoUrl = imagenId != null
-        ? 'https://270d-2800-cd0-7b1c-e300-907e-f5b9-2fee-2f6e.ngrok-free.app/api/imagenes/$imagenId/descargar'
-        : 'https://ui-avatars.com/api/?name=${persona['nombre']}+${persona['apellidoPaterno']}&background=random';
+    // 2. ¡CORRECCIÓN DE IMAGEN! Usamos el campo directo del JSON
+    final String photoUrl =
+        (persona['imagen'] != null && persona['imagen'].toString().isNotEmpty)
+        ? persona['imagen'] // URL directa de tu base de datos
+        : 'https://ui-avatars.com/api/?name=${persona['nombre']}+${persona['apellidoPaterno']}&background=random&color=fff';
 
     // 3. Obtener hora actual en formato HH:MM
     final horaIngreso =
         "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}";
 
     return Column(
+      mainAxisSize: MainAxisSize.min, // Que ocupe solo lo necesario
       children: [
-        // Foto circular con borde amarillo
+        // Foto circular adaptativa
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -296,41 +318,45 @@ class ResultScreen extends StatelessWidget {
             border: Border.all(color: Colors.amber, width: 4),
           ),
           child: CircleAvatar(
-            radius: 60,
+            radius: size.height * 0.08, // El radio es el 8% de la pantalla
             backgroundImage: NetworkImage(photoUrl),
             backgroundColor: Colors.grey.shade200,
           ),
         ),
-        const SizedBox(height: 25),
+        SizedBox(height: size.height * 0.02),
 
         // Nombre
         const Text(
           "NOMBRE COMPLETO",
           style: TextStyle(
             color: Colors.grey,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.5,
           ),
         ),
         const SizedBox(height: 5),
-        Text(
-          nombreCompleto,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF1E293B),
+        // FittedBox evita que nombres muy largos (ej. 4 nombres) se salgan de la pantalla
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            nombreCompleto,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E293B),
+            ),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: size.height * 0.02),
 
         // Carnet
         const Text(
           "CARNET DE IDENTIDAD",
           style: TextStyle(
             color: Colors.grey,
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.5,
           ),
@@ -339,72 +365,80 @@ class ResultScreen extends StatelessWidget {
         Text(
           "${persona['carnetIdentidad']}",
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Color(0xFF1E293B),
           ),
         ),
 
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 20),
-          child: Divider(),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
+          child: const Divider(),
         ),
 
         // Fila Inferior (Hora y Departamento)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Column(
-              children: [
-                const Text(
-                  "HORA LECTURA",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  horaIngreso,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                const Text(
-                  "DEPARTAMENTO",
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    "${persona['unidad'] ?? 'Sin unidad'}",
-                    style: const TextStyle(
-                      fontSize: 12,
+            Flexible(
+              child: Column(
+                children: [
+                  const Text(
+                    "HORA LECTURA",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    horaIngreso,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
                       color: Color(0xFF1E293B),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            Flexible(
+              child: Column(
+                children: [
+                  const Text(
+                    "DEPARTAMENTO",
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    // FittedBox para departamentos con nombres eternos
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        "${persona['unidad'] ?? 'Sin unidad'}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
