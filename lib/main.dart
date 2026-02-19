@@ -34,26 +34,53 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  // Controlador para la cámara
   MobileScannerController cameraController = MobileScannerController();
   bool _isProcessing = false;
+  bool _audioDesbloqueado = false; // <-- Nueva variable
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ScannerProvider>();
 
-    // Si estamos cargando, o mostrando un resultado, ocultamos la cámara
+    // 1. PANTALLA INICIAL (Para forzar al usuario a tocar la pantalla)
+    if (!_audioDesbloqueado) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF1E293B), // Azul oscuro
+        body: Center(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+            ),
+            icon: const Icon(Icons.power_settings_new, size: 30),
+            label: const Text(
+              "INICIAR SISTEMA DE ACCESO",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            onPressed: () async {
+              // Al tocar, desbloqueamos el audio de Chrome Móvil
+              await provider.desbloquearAudioWeb();
+              setState(() {
+                _audioDesbloqueado = true; // Pasamos a la cámara
+              });
+            },
+          ),
+        ),
+      );
+    }
+
+    // 2. SI YA ESTÁ PROCESANDO, MOSTRAMOS EL RESULTADO
     if (provider.state != ScannerState.idle) {
       return ResultScreen(
         onScanAgain: () {
           _isProcessing = false;
-          // Reactivamos cámara
           provider.resetScanner();
         },
       );
     }
 
-    // PANTALLA PRINCIPAL: LA CÁMARA
+    // 3. LA CÁMARA (Como la tenías antes)
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -67,15 +94,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
               for (final barcode in barcodes) {
                 if (barcode.rawValue != null) {
                   setState(() => _isProcessing = true);
-                  cameraController.stop(); // Pausamos la cámara al detectar
 
-                  // Llamamos al provider con el String del QR
+                  // Llamamos al provider
                   await provider.validarQrCode(barcode.rawValue!);
                 }
               }
             },
           ),
-          // Diseño superpuesto (el marco y el texto)
           _buildOverlay(),
         ],
       ),

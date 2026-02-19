@@ -43,6 +43,15 @@ class ScannerProvider extends ChangeNotifier {
     }
   }
 
+  // --- TRUCO PARA DESBLOQUEAR AUDIO EN NAVEGADORES MÓVILES ---
+  Future<void> desbloquearAudioWeb() async {
+    await _flutterTts.setVolume(0.0); // Le bajamos el volumen a cero
+    await _flutterTts.speak(" "); // Hablamos un espacio en blanco
+    await _flutterTts.setVolume(
+      1.0,
+    ); // Volvemos a subir el volumen para después
+  }
+
   void resetScanner() {
     _state = ScannerState.idle;
     _personaEncontrada = null;
