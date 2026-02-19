@@ -19337,7 +19337,7 @@ LZ:function LZ(){},
 BK:function BK(){},
 DO:function DO(){},
 XY:function XY(a){this.a=a},
-avd(a,b){return A.a8Q(new A.a99(a,b),t.Wd)},
+avd(a){return A.a8Q(new A.a99(a,null),t.Wd)},
 a8Q(a,b){return A.au8(a,b,b)},
 au8(a,b,c){var s=0,r=A.G(c),q,p=2,o=[],n=[],m,l
 var $async$a8Q=A.H(function(d,e){if(d===1){o.push(e)
@@ -60804,7 +60804,6 @@ qA(a,b,c){return this.YG(a,b,c)},
 YG(a,b,c){var s=0,r=A.G(t.Wd),q,p=this,o,n
 var $async$qA=A.H(function(d,e){if(d===1)return A.D(e,r)
 for(;;)switch(s){case 0:o=A.apZ(a,b)
-o.r.K(0,c)
 n=A
 s=3
 return A.B(p.eS(o),$async$qA)
@@ -63002,9 +63001,8 @@ s=q}for(;;)switch(s){case 0:n.c=B.v4
 n.aa()
 q=3
 m=A.fr("https://c5dc-192-223-121-131.ngrok-free.app/api/personal/detalles/qrComputo/"+a)
-j=t.N
 s=6
-return A.B(A.avd(m,A.aB(["Accept","application/json","ngrok-skip-browser-warning","true"],j,j)),$async$u5)
+return A.B(A.avd(m),$async$u5)
 case 6:l=c
 if(l.b===200){k=B.cy.eb(B.M.eb(l.w))
 n.d=k
