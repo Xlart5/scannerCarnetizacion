@@ -58,13 +58,7 @@ class ScannerProvider extends ChangeNotifier {
       final url = Uri.parse(
         '$_baseUrl/api/personal/detalles/qrComputo/$rawQrData',
       );
-      final response = await http.get(
-        url,
-        headers: {
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-      );
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final persona = json.decode(utf8.decode(response.bodyBytes));
