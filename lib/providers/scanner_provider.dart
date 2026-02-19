@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart'; // <-- IMPORTAMOS LA VOZ
 
-// Estados posibles del proceso de escaneo
 enum ScannerState { idle, loading, success, denied, notFound, error }
 
 class ScannerProvider extends ChangeNotifier {
-  // ⚠️ IMPORTANTE: Usa la URL de Ngrok que tengas activa hoy en tu environment.dart
-  // Como es una app móvil, NO puedes usar "localhost".
   final String _baseUrl = 'https://c5dc-192-223-121-131.ngrok-free.app';
+  final FlutterTts _flutterTts = FlutterTts(); // Instancia de la voz
 
   ScannerState _state = ScannerState.idle;
   Map<String, dynamic>? _personaEncontrada;
@@ -18,54 +17,76 @@ class ScannerProvider extends ChangeNotifier {
   Map<String, dynamic>? get personaEncontrada => _personaEncontrada;
   String get errorMessage => _errorMessage;
 
-  // Función para resetear y volver a escanear
+  ScannerProvider() {
+    _configurarVoz();
+  }
+
+  // 1. Configuramos la voz para que hable español y ESPERE a terminar
+  Future<void> _configurarVoz() async {
+    await _flutterTts.setLanguage("es-ES");
+    await _flutterTts.setSpeechRate(0.5); // Velocidad normal
+    await _flutterTts.awaitSpeakCompletion(
+      true,
+    ); // ¡Vital para que espere antes de cerrar!
+  }
+
+  // 2. Función para que el celular hable según el resultado
+  Future<void> reproducirVoz() async {
+    if (_state == ScannerState.success) {
+      String nombre = _personaEncontrada?['nombre'] ?? '';
+      String paterno = _personaEncontrada?['apellidoPaterno'] ?? '';
+      await _flutterTts.speak("Acceso permitido. Bienvenido, $nombre $paterno");
+    } else if (_state == ScannerState.denied) {
+      await _flutterTts.speak("Acceso denegado. $_errorMessage");
+    } else {
+      await _flutterTts.speak("Error al leer el código.");
+    }
+  }
+
   void resetScanner() {
     _state = ScannerState.idle;
     _personaEncontrada = null;
     notifyListeners();
   }
 
-  // LA FUNCIÓN PRINCIPAL: Procesa el QR directo con tu nuevo endpoint
+  // 3. Validación de QR y manejo del Error 403
   Future<void> validarQrCode(String rawQrData) async {
     _state = ScannerState.loading;
     notifyListeners();
 
     try {
-      print("Consultando acceso para el QR: $rawQrData");
-
-      // Llamamos directo a tu nuevo endpoint
       final url = Uri.parse(
         '$_baseUrl/api/personal/detalles/qrComputo/$rawQrData',
       );
-
       final response = await http.get(
         url,
         headers: {
-          // Vital para Ngrok
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       );
 
       if (response.statusCode == 200) {
-        // Obtenemos los datos de la persona escaneada
         final persona = json.decode(utf8.decode(response.bodyBytes));
         _personaEncontrada = persona;
 
-        // Leemos el booleano que manda el backend
-        final bool tieneAcceso = persona['accesoComputo'] == true;
-
-        if (tieneAcceso) {
-          _state = ScannerState.success; // Pantalla Verde/Amarilla (Éxito)
+        if (persona['accesoComputo'] == true) {
+          _state = ScannerState.success;
         } else {
-          _state = ScannerState.denied; // Pantalla Roja (Denegado)
+          _state = ScannerState.denied;
+          _errorMessage = "No tiene permisos de acceso.";
         }
-      } else if (response.statusCode == 404 || response.statusCode == 204) {
-        // Si el backend responde que no existe ese QR
-        _state = ScannerState.notFound;
+      }
+      // ¡AQUÍ ATRAPAMOS EL ERROR 403 y 404!
+      else if (response.statusCode == 403 || response.statusCode == 404) {
+        _state = ScannerState.denied; // Forzamos la pantalla Roja
+        _errorMessage =
+            "La persona no está registrada."; // Tu mensaje personalizado
       } else {
         _setError("Error del servidor: ${response.statusCode}");
       }
     } catch (e) {
-      _setError("Error de conexión: $e");
+      _setError("Error de conexión al servidor.");
     } finally {
       notifyListeners();
     }

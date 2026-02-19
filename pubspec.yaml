@@ -31,6 +31,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
+  flutter_tts: ^4.2.5
   http: ^1.6.0
   mobile_scanner: ^7.1.4
   provider: ^6.1.5+1

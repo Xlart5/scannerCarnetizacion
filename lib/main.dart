@@ -132,34 +132,53 @@ class _ScannerScreenState extends State<ScannerScreen> {
 }
 
 // ==========================================
-// PANTALLA DE RESULTADOS (Verde o Rojo)
+// PANTALLA DE RESULTADOS (Con Voz y Cierre Automático)
 // ==========================================
-// ==========================================
-// PANTALLA DE RESULTADOS (Tu Diseño Original)
-// ==========================================
-// ==========================================
-// PANTALLA DE RESULTADOS (Responsiva y Dinámica)
-// ==========================================
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   final VoidCallback onScanAgain;
-
   const ResultScreen({super.key, required this.onScanAgain});
+
+  @override
+  State<ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<ResultScreen> {
+  bool _isClosing = false; // Evita que se cierre 2 veces por accidente
+
+  @override
+  void initState() {
+    super.initState();
+    // Apenas se dibuja la pantalla roja o verde, ejecutamos la voz
+    _hablarYRegresar();
+  }
+
+  Future<void> _hablarYRegresar() async {
+    final provider = context.read<ScannerProvider>();
+
+    // 1. Hablar
+    await provider.reproducirVoz();
+
+    // 2. Esperamos un segundito extra para que no sea un corte tan brusco
+    await Future.delayed(const Duration(seconds: 1));
+
+    // 3. Regresamos mágicamente a la cámara
+    if (mounted && !_isClosing) {
+      _isClosing = true;
+      widget.onScanAgain();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ScannerProvider>();
     final state = provider.state;
     final persona = provider.personaEncontrada;
-
-    // Obtenemos el tamaño exacto de la pantalla del celular
     final size = MediaQuery.of(context).size;
 
-    // Variables de diseño por defecto
-    Color bgColor = const Color(0xFFFFD54F); // Amarillo
+    Color bgColor = const Color(0xFFFFD54F);
     IconData mainIcon = Icons.verified_user;
     String title = "ACCESO\nPERMITIDO";
 
-    // Cambiamos colores según el estado
     if (state == ScannerState.loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF1E293B),
@@ -169,11 +188,7 @@ class ResultScreen extends StatelessWidget {
       bgColor = Colors.redAccent;
       mainIcon = Icons.cancel;
       title = "ACCESO\nDENEGADO";
-    } else if (state == ScannerState.notFound) {
-      bgColor = Colors.orangeAccent;
-      mainIcon = Icons.person_off;
-      title = "QR NO\nENCONTRADO";
-    } else if (state == ScannerState.error) {
+    } else if (state == ScannerState.notFound || state == ScannerState.error) {
       bgColor = Colors.grey.shade800;
       mainIcon = Icons.error;
       title = "ERROR DE\nLECTURA";
@@ -184,8 +199,7 @@ class ResultScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: size.height * 0.02), // 2% de la pantalla
-            // Badge "SESIÓN ACTIVA"
+            SizedBox(height: size.height * 0.02),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
               decoration: BoxDecoration(
@@ -209,16 +223,12 @@ class ResultScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: size.height * 0.03),
-
-            // Icono Dinámico (Se adapta al alto de la pantalla)
             Icon(
               mainIcon,
               size: size.height * 0.1,
               color: const Color(0xFF1E293B),
             ),
             SizedBox(height: size.height * 0.01),
-
-            // Título Dinámico (Se encoge si no entra)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: FittedBox(
@@ -237,13 +247,11 @@ class ResultScreen extends StatelessWidget {
             ),
             SizedBox(height: size.height * 0.03),
 
-            // Tarjeta Blanca Inferior (¡AHORA ES SCROLLABLE!)
+            // Tarjeta Blanca
             Expanded(
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(
-                  size.width * 0.07,
-                ), // Padding relativo al ancho
+                padding: EdgeInsets.all(size.width * 0.07),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -251,16 +259,17 @@ class ResultScreen extends StatelessWidget {
                     topRight: Radius.circular(40),
                   ),
                 ),
-                // Aquí metemos el SingleChildScrollView para evitar recortes
                 child: persona != null
                     ? SingleChildScrollView(
                         child: _buildPersonaInfo(persona, size),
                       )
-                    : _buildErrorMessage(provider.errorMessage),
+                    : _buildErrorMessage(
+                        provider.errorMessage,
+                      ), // Muestra "La persona no está registrada"
               ),
             ),
 
-            // Botón de Escanear de Nuevo
+            // Botón manual (por si quieren saltarse la voz)
             Container(
               color: Colors.white,
               padding: const EdgeInsets.all(20),
@@ -275,10 +284,15 @@ class ResultScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(15),
                     ),
                   ),
-                  onPressed: onScanAgain,
+                  onPressed: () {
+                    if (!_isClosing) {
+                      _isClosing = true;
+                      widget.onScanAgain();
+                    }
+                  },
                   icon: const Icon(Icons.qr_code_scanner),
                   label: const Text(
-                    "ESCANEAR OTRO QR",
+                    "VOLVER A ESCANEAR",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -290,27 +304,21 @@ class ResultScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET: DATOS DE LA PERSONA (RESPONSIVO) ---
+  // --- WIDGET INFO (Se mantiene igual que antes) ---
   Widget _buildPersonaInfo(Map<String, dynamic> persona, Size size) {
-    // 1. Armar nombre completo
     final nombreCompleto =
         "${persona['nombre']} ${persona['apellidoPaterno']} ${persona['apellidoMaterno'] ?? ''}"
             .trim();
-
-    // 2. ¡CORRECCIÓN DE IMAGEN! Usamos el campo directo del JSON
     final String photoUrl =
         (persona['imagen'] != null && persona['imagen'].toString().isNotEmpty)
-        ? persona['imagen'] // URL directa de tu base de datos
+        ? persona['imagen']
         : 'https://ui-avatars.com/api/?name=${persona['nombre']}+${persona['apellidoPaterno']}&background=random&color=fff';
-
-    // 3. Obtener hora actual en formato HH:MM
     final horaIngreso =
         "${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}";
 
     return Column(
-      mainAxisSize: MainAxisSize.min, // Que ocupe solo lo necesario
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Foto circular adaptativa
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -318,14 +326,12 @@ class ResultScreen extends StatelessWidget {
             border: Border.all(color: Colors.amber, width: 4),
           ),
           child: CircleAvatar(
-            radius: size.height * 0.08, // El radio es el 8% de la pantalla
+            radius: size.height * 0.08,
             backgroundImage: NetworkImage(photoUrl),
             backgroundColor: Colors.grey.shade200,
           ),
         ),
         SizedBox(height: size.height * 0.02),
-
-        // Nombre
         const Text(
           "NOMBRE COMPLETO",
           style: TextStyle(
@@ -336,7 +342,6 @@ class ResultScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        // FittedBox evita que nombres muy largos (ej. 4 nombres) se salgan de la pantalla
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
@@ -350,8 +355,6 @@ class ResultScreen extends StatelessWidget {
           ),
         ),
         SizedBox(height: size.height * 0.02),
-
-        // Carnet
         const Text(
           "CARNET DE IDENTIDAD",
           style: TextStyle(
@@ -370,13 +373,10 @@ class ResultScreen extends StatelessWidget {
             color: Color(0xFF1E293B),
           ),
         ),
-
         Padding(
           padding: EdgeInsets.symmetric(vertical: size.height * 0.02),
           child: const Divider(),
         ),
-
-        // Fila Inferior (Hora y Departamento)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -424,7 +424,6 @@ class ResultScreen extends StatelessWidget {
                       color: Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    // FittedBox para departamentos con nombres eternos
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
@@ -448,10 +447,25 @@ class ResultScreen extends StatelessWidget {
 
   Widget _buildErrorMessage(String error) {
     return Center(
-      child: Text(
-        error.isNotEmpty ? error : "No se pudo procesar la solicitud.",
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: Colors.grey, fontSize: 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.redAccent,
+            size: 60,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            error.isNotEmpty ? error : "No se pudo procesar la solicitud.",
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
