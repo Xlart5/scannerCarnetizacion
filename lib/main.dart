@@ -47,7 +47,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return ResultScreen(
         onScanAgain: () {
           _isProcessing = false;
-          cameraController.start(); // Reactivamos cámara
+          // Reactivamos cámara
           provider.resetScanner();
         },
       );

@@ -23,8 +23,8 @@ class ScannerProvider extends ChangeNotifier {
 
   // 1. Configuramos la voz para que hable español y ESPERE a terminar
   Future<void> _configurarVoz() async {
-    await _flutterTts.setLanguage("es-ES");
-    await _flutterTts.setSpeechRate(0.5); // Velocidad normal
+    await _flutterTts.setLanguage("es-US");
+    await _flutterTts.setSpeechRate(1); // Velocidad normal
     await _flutterTts.awaitSpeakCompletion(
       true,
     ); // ¡Vital para que espere antes de cerrar!
