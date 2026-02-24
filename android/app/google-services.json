@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "693831024087",
+    "firebase_url": "https://controlaccesoqr-341df-default-rtdb.firebaseio.com",
+    "project_id": "controlaccesoqr-341df",
+    "storage_bucket": "controlaccesoqr-341df.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693831024087:android:8353d5d814558026a41f92",
+        "android_client_info": {
+          "package_name": "com.example.scanner_carnetizacion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwrw5lKR5UEnYoeiuTve5wRT0Vz74QK3o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
