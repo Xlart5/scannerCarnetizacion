@@ -41,51 +41,51 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDHJhKAQaU5NJS9uqkSdEOIUZvQ0H_0jP8',
-    appId: '1:693831024087:web:fa0447ab5fe1efcda41f92',
-    messagingSenderId: '693831024087',
-    projectId: 'controlaccesoqr-341df',
-    authDomain: 'controlaccesoqr-341df.firebaseapp.com',
-    databaseURL: 'https://controlaccesoqr-341df-default-rtdb.firebaseio.com',
-    storageBucket: 'controlaccesoqr-341df.firebasestorage.app',
+    apiKey: 'AIzaSyBsu_Bi5Wd-AGFtP9A854ROTAs13_iPFlU',
+    appId: '1:651690558061:web:029d17c6743b729e50f564',
+    messagingSenderId: '651690558061',
+    projectId: 'credenciales-f2be2',
+    authDomain: 'credenciales-f2be2.firebaseapp.com',
+    storageBucket: 'credenciales-f2be2.firebasestorage.app',
+    databaseURL: 'https://credenciales-f2be2-default-rtdb.firebaseio.com/',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAwrw5lKR5UEnYoeiuTve5wRT0Vz74QK3o',
-    appId: '1:693831024087:android:8353d5d814558026a41f92',
-    messagingSenderId: '693831024087',
-    projectId: 'controlaccesoqr-341df',
-    databaseURL: 'https://controlaccesoqr-341df-default-rtdb.firebaseio.com',
-    storageBucket: 'controlaccesoqr-341df.firebasestorage.app',
+    apiKey: 'AIzaSyDa14iX7WP9VzYyhqURy8HC2r2D_kTATyE',
+    appId: '1:651690558061:android:3526ac8ccaf6788050f564',
+    messagingSenderId: '651690558061',
+    projectId: 'credenciales-f2be2',
+    storageBucket: 'credenciales-f2be2.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAoefI6BaChPs8ekOlZ8vJS_DzMVT2dDF8',
-    appId: '1:693831024087:ios:c7d0bd7786d18878a41f92',
-    messagingSenderId: '693831024087',
-    projectId: 'controlaccesoqr-341df',
-    databaseURL: 'https://controlaccesoqr-341df-default-rtdb.firebaseio.com',
-    storageBucket: 'controlaccesoqr-341df.firebasestorage.app',
+    apiKey: 'AIzaSyB0bYYmZZ0Fhs0komRlTgQ7wy-An4gReK0',
+    appId: '1:651690558061:ios:874ee9f96985056450f564',
+    messagingSenderId: '651690558061',
+    projectId: 'credenciales-f2be2',
+    storageBucket: 'credenciales-f2be2.firebasestorage.app',
+    iosClientId:
+        '651690558061-c0ccq0h2hkbt0h2a6read2o3edavsubo.apps.googleusercontent.com',
     iosBundleId: 'com.example.scannerCarnetizacion',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAoefI6BaChPs8ekOlZ8vJS_DzMVT2dDF8',
-    appId: '1:693831024087:ios:c7d0bd7786d18878a41f92',
-    messagingSenderId: '693831024087',
-    projectId: 'controlaccesoqr-341df',
-    databaseURL: 'https://controlaccesoqr-341df-default-rtdb.firebaseio.com',
-    storageBucket: 'controlaccesoqr-341df.firebasestorage.app',
+    apiKey: 'AIzaSyB0bYYmZZ0Fhs0komRlTgQ7wy-An4gReK0',
+    appId: '1:651690558061:ios:874ee9f96985056450f564',
+    messagingSenderId: '651690558061',
+    projectId: 'credenciales-f2be2',
+    storageBucket: 'credenciales-f2be2.firebasestorage.app',
+    iosClientId:
+        '651690558061-c0ccq0h2hkbt0h2a6read2o3edavsubo.apps.googleusercontent.com',
     iosBundleId: 'com.example.scannerCarnetizacion',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDHJhKAQaU5NJS9uqkSdEOIUZvQ0H_0jP8',
-    appId: '1:693831024087:web:1c3d205e0a2c8f66a41f92',
-    messagingSenderId: '693831024087',
-    projectId: 'controlaccesoqr-341df',
-    authDomain: 'controlaccesoqr-341df.firebaseapp.com',
-    databaseURL: 'https://controlaccesoqr-341df-default-rtdb.firebaseio.com',
-    storageBucket: 'controlaccesoqr-341df.firebasestorage.app',
+    apiKey: 'AIzaSyBsu_Bi5Wd-AGFtP9A854ROTAs13_iPFlU',
+    appId: '1:651690558061:web:a054e46950fb7eab50f564',
+    messagingSenderId: '651690558061',
+    projectId: 'credenciales-f2be2',
+    authDomain: 'credenciales-f2be2.firebaseapp.com',
+    storageBucket: 'credenciales-f2be2.firebasestorage.app',
   );
 }
